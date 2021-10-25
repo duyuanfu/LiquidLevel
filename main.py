@@ -21,16 +21,16 @@ while True:
         r_image.show()
         image = cv.cvtColor(np.asarray(image), cv.COLOR_RGB2BGR)
         detect_image = image[top: bottom, left: right]
-        # cv.imwrite('image_process/example/test00.jpg', detect_image)
-        # cv.imshow("OpenCV", image)
+        cv.imwrite('image_process/example/gear' + img[-9:], detect_image)
+        detect_image = cv.imread('image_process/example/gear' + img[-9:])
 
         # 获得液位线y = kx + b ==> -y + kx + b = 0
         detect_image_cp = copy.deepcopy(detect_image)
         detect_image_cp1 = copy.deepcopy(detect_image)
-        line_k, line_b = get_liquid_line(detect_image_cp)
-
+        line_k, line_b = get_liquid_line(detect_image)
+        img_width = detect_image.shape[1]
         pt1 = (0, np.int16(line_k * 0 + line_b))
-        pt2 = (180, np.int16(line_k * 180 + line_b))
+        pt2 = (img_width, np.int16(line_k * img_width + line_b))
         cv.line(detect_image, pt1, pt2, (0, 255, 0), 2)
         image[top: bottom, left: right] = detect_image
         cv.namedWindow("01_liquidLevel_img", cv.WINDOW_KEEPRATIO)
@@ -51,7 +51,7 @@ while True:
         value_top2 = -center_xy[1][1] + line_k * center_xy[1][0] + line_b
         value_bottom1 = -center_xy[2][1] + line_k * center_xy[2][0] + line_b
         value_bottom2 = -center_xy[3][1] + line_k * center_xy[3][0] + line_b
-        print(value_top1, value_top2, value_bottom1, value_bottom2)
+        # print(value_top1, value_top2, value_bottom1, value_bottom2)
 
         if (value_top1 * value_top2) > 0 and (value_bottom1 * value_bottom2 > 0) and (value_top1 * value_bottom1 < 0):
             print("液位线正常")
@@ -62,7 +62,7 @@ while True:
         cv.destroyAllWindows()
 
 
-# ./image_detection/data/org_jpg/00000.jpg
+# ./image_detection/data/org_png/00011.png
 
 
 

@@ -9,7 +9,7 @@ def nothing(x):
     pass
 
 
-img_original = cv2.imread('../example/06_1.jpg')
+img_original = cv2.imread('../example/gear00000.png')
 # 颜色空间的转换
 img_hsv = cv2.cvtColor(img_original, cv2.COLOR_BGR2HSV)
 # 新建窗口

@@ -19,36 +19,43 @@ def conv2d(img, kernel):
     return img
 
 
+def get_line_kbmodel(line):
+    """
+    :param line= [w1, h1, w2, h2], 线的方程自变量为像素距左上角的高度，因变量为像素距左上角的宽度
+    :return: line_k, line_b
+    """
+    if line[1] == line[3]:
+        line[1] += 1
+    line_k = (line[2] - line[0]) / (line[3] - line[1])
+    line_b = -line_k * line[1] + line[0]
+
+    return line_k, line_b
+
+
 def get_roi(input_img, pt_list):
     """
-    提取两条直线之间的区域
+    提取两条直线之间的区域，线的方程自变量为像素距左上角的高度，因变量为像素距左上角的宽度
     :param img: rgb图像
     :param list_pt: 两条直线4个点的坐标
     :return:
     """
-    pt1 = pt_list[0][0]
-    pt2 = pt_list[1][0]
+    pt1 = pt_list[0]
+    pt2 = pt_list[1]
     # print(pt1, pt2)
 
-    if pt1[0] == pt1[2]:
-        pt1[0] += 1
-    k1 = (pt1[3] - pt1[1]) / (pt1[2] - pt1[0])
-    b1 = - k1 * pt1[0] + pt1[1]
-
-    if pt2[0] == pt2[2]:
-        pt2[0] += 1
-    k2 = (pt2[3] - pt2[1]) / (pt2[2] - pt2[0])
-    b2 = - k2 * pt2[0] + pt2[1]
+    k1, b1 = get_line_kbmodel(pt1)
+    k2, b2 = get_line_kbmodel(pt2)
     # print(k1, b1, k2, b2)
 
+    roi_img = np.zeros(input_img.shape, dtype=input_img.dtype)
     for i in range(input_img.shape[0]):
         for j in range(input_img.shape[1]):
-            y1 = k1 * j + b1
-            y2 = k2 * j + b2
-            if not(y1 >= i >= y2 or y1 <= i <= y2):
-                input_img[i, j] = [0, 0, 0]
+            x1 = k1 * i + b1
+            x2 = k2 * i + b2
+            if x1 >= j >= x2 or x1 <= j <= x2:
+                roi_img[i, j] = input_img[i, j]
 
-    return input_img
+    return roi_img
 
 
 def get_top_edge(input_img):
@@ -75,10 +82,99 @@ def get_top_edge(input_img):
     return top_edge
 
 
+def is_close_line(lines):
+    """
+
+    :param lines: [[x1, y1, x2, y2],[ , , , ]]
+    :return:
+    """
+    line1 = lines[0]
+    line2 = lines[1]
+
+    # 第一种情况：两条线的端点比较接近
+    point_thresold = 100  # 25是一个阈值，手动设定
+    if np.square(line1[0] - line2[0]) + np.square(line1[1] - line2[1]) < point_thresold:
+        return True
+    if np.square(line1[0] - line2[2]) + np.square(line1[1] - line2[3]) < point_thresold:
+        return True
+    if np.square(line1[2] - line2[2]) + np.square(line1[3] - line2[3]) < point_thresold:
+        return True
+    if np.square(line1[2] - line2[0]) + np.square(line1[3] - line2[1]) < point_thresold:
+        return True
+
+    # 第二种情况：两直线比较平行，有一部分靠近近似重叠
+    # 有点难，先放着
+
+    return False
+
+
+# 两两判断线段是否接近，若接近删除其中长度较短的一条
+def is_close_all_lines(lines):
+    """
+
+    :param lines: np.array[[x1, y1, x2, y2],[ , , , ], ..., [, , , ]]
+    :return:lines——优化后的两条直线。
+    """
+    num_lines = lines.shape[0]
+
+    # 计算线段的长度
+    len_lines = np.abs((lines[:, 0] - lines[:, 2]) * (lines[:, 1] - lines[:, 3]))
+    len_lines = np.argsort(-len_lines)  # 根据线段的长度进行降序排序
+    lines = lines[len_lines]
+
+    for i in range(0, num_lines - 1):
+        for j in range(i + 1, num_lines):
+            if is_close_line([lines[i], lines[j]]):  # 若两直线接近，使长度较短者为0
+                lines[j] = [0, 0, 0, 0]
+                break
+
+    zero_row_idx = np.argwhere(np.all(lines[:, ...] == 0, axis=1))
+    lines = np.delete(lines, zero_row_idx, axis=0)
+
+    return lines[:2]
+
+
+def adapt_houghlinesP(edg_img):
+    """
+    对图片进行HoughLinesP可能会得到多条线段，而实际我们只需要两条竖线，所以要对获取到的线段进
+    行优化
+    :return:
+    """
+    threshold = 20
+    minLineLength = 40
+    maxLineGap = 20
+
+    while True:
+        lines = cv.HoughLinesP(edg_img, rho=1, theta=np.pi / 180, threshold=threshold, minLineLength=minLineLength,
+                               maxLineGap=maxLineGap)
+        lines = np.array(lines).reshape(-1, 4)
+        # 线的斜率若大于一定值，则舍去
+        for line in lines:
+            k, _ = get_line_kbmodel(line)
+            if k > 0.7:
+                lines.remove(lines)
+
+        num_lines = lines.shape[0]
+        if num_lines < 2:  # 检测到的线段数量小于2时， 降低阈值
+            threshold = threshold - 5
+        elif num_lines == 2:  # 判断这2条线段是否接近
+            if not is_close_line(lines):
+                break
+            else:
+                threshold = threshold - 5
+        elif num_lines > 6: # 检测到的线段太多，增加阈值
+            threshold = threshold + 5
+        else:   # 当线段数量大于2时, 优化只保留2条直线
+            lines = is_close_all_lines(lines)
+            break
+
+    return lines
+
+
 def get_liquid_line(src_img):
     """
     获取液位线：y = line_k * x + line_b
-    :param source_img:
+    :param src_img:
     :return: line_k——液位线的斜率, line_b——液位线的偏移量
     """
     # 显示源图像
@@ -90,7 +186,7 @@ def get_liquid_line(src_img):
     hsv_img = cv.cvtColor(src_img, cv.COLOR_BGR2HSV)
     low_hsv = np.array([44, 0, 38])
     high_hsv = np.array([143, 255, 255])
-    mask_img = cv.cv2.inRange(hsv_img, low_hsv, high_hsv)   # 灰度图像
+    mask_img = cv.inRange(hsv_img, low_hsv, high_hsv)   # 灰度图像
     if __name__ == '__main__':
         cv.namedWindow("01_mask", cv.WINDOW_KEEPRATIO)
         cv.imshow("01_mask", mask_img)
@@ -107,31 +203,33 @@ def get_liquid_line(src_img):
         cv.namedWindow("03_edges", cv.WINDOW_KEEPRATIO)
         cv.imshow("03_edges", edg_img)
 
-    # 提取竖直线
-    ver_img = cv.Sobel(edg_img, cv.CV_8U, dx=1, dy=0, ksize=3)
-    if __name__ == '__main__':
-        cv.namedWindow('04_vertical', cv.WINDOW_KEEPRATIO)
-        cv.imshow('04_vertical', ver_img)
-
-    # 闭运算
-    kernel = np.ones((3, 3), np.uint8)
-    clo_img = cv.morphologyEx(ver_img, cv.MORPH_CLOSE, kernel)
-    if __name__ == '__main__':
-        cv.namedWindow("05_close", cv.WINDOW_KEEPRATIO)
-        cv.imshow("05_close", clo_img)
+    # # 提取竖直线
+    # ver_img = cv.Sobel(edg_img, cv.CV_8U, dx=1, dy=0, ksize=3)
+    # if __name__ == '__main__':
+    #     cv.namedWindow('04_vertical', cv.WINDOW_KEEPRATIO)
+    #     cv.imshow('04_vertical', ver_img)
+    #
+    # # 闭运算
+    # kernel = np.ones((3, 3), np.uint8)
+    # clo_img = cv.morphologyEx(ver_img, cv.MORPH_CLOSE, kernel)
+    # if __name__ == '__main__':
+    #     cv.namedWindow("05_close", cv.WINDOW_KEEPRATIO)
+    #     cv.imshow("05_close", clo_img)
 
     # hough线段检测
-    lines = cv.HoughLinesP(edg_img, rho=1, theta=np.pi / 180, threshold=20, minLineLength=40, maxLineGap=10)
-    for line in lines:
-        x1, y1, x2, y2 = line[0]
-        cv.line(src_img, (x1, y1), (x2, y2), (0, 255, 0), 2)
+    lines = adapt_houghlinesP(edg_img)
     print(lines)
+    # lines = cv.HoughLinesP(edg_img, rho=1, theta=np.pi / 180, threshold=20, minLineLength=40, maxLineGap=20)
     if __name__ == '__main__':
-        cv.namedWindow('06_line', cv.WINDOW_KEEPRATIO)
-        cv.imshow('06_line', src_img)
+        for i in range(lines.shape[0]):
+            x1, y1, x2, y2 = lines[i]
+            cv.line(src_img, (x1, y1), (x2, y2), (0, 255, 0), 2)
+            cv.namedWindow('06_line', cv.WINDOW_KEEPRATIO)
+            cv.imshow('06_line', src_img)
 
     # 只取出液位柱部分
     roi_img = get_roi(src_img, lines)
+    cv.imwrite(r'E:\Pycharm\Workplace\LiquidLevel\image_process\example\roi.png', roi_img)
     if __name__ == '__main__':
         cv.namedWindow('07_roi', cv.WINDOW_KEEPRATIO)
         cv.imshow('07_roi', roi_img)
@@ -156,8 +254,9 @@ def get_liquid_line(src_img):
     line_b = line_info[3] - line_k * line_info[2]
 
     if __name__ == '__main__':
-        pt1 = (20, np.int16(line_k * 20 + line_b))
-        pt2 = (100, np.int16(line_k * 100 + line_b))
+        img_width = src_img.shape[1]
+        pt1 = (0, np.int16(line_k * 0 + line_b))
+        pt2 = (img_width, np.int16(line_k * img_width + line_b))
         cv.line(roi_img, pt1, pt2, 255, 1)
         cv.namedWindow("10_line", cv.WINDOW_KEEPRATIO)
         cv.imshow("10_line", roi_img)
@@ -166,7 +265,7 @@ def get_liquid_line(src_img):
 
 
 if __name__ == '__main__':
-    img = cv.imread('example/test01.jpg')
+    img = cv.imread('example/gear00016.png')
     get_liquid_line(img)
 
     cv.waitKey()
