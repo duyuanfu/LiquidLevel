@@ -50,6 +50,7 @@ if __name__ == "__main__":
                 print('Open Error! Try again!')
                 continue
             else:
+                print(image)
                 r_image, top, bottom, left, right = yolo.detect_image(image)
                 r_image.show()
 
