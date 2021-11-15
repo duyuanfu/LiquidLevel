@@ -1,10 +1,6 @@
 import numpy as np
 
-list = [(1, 2), (2, 4), (5, 6)]
-line_k = 1
-line_b = 4
-points = np.array(list)
-value = -points[:, 0] + line_k * points[:, 1] + line_b
+arr = np.array([4, 3, 2, 1, 2, 4])
 
-print(points)
-print(value)
+index = np.where(arr > 2)
+print(index)

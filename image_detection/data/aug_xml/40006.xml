@@ -1,0 +1,32 @@
+<annotation>
+	<folder>TrainInspection</folder>
+	<filename>40006.jpg</filename>
+	<source>
+		<database>The TrainInspection Database</database>
+		<annotation>PASCAL TrainInspection</annotation>
+		<image>flickr</image>
+		<flickrid>325991873</flickrid>
+	</source>
+	<owner>
+		<flickrid>archintent louisville</flickrid>
+		<name>gearbox</name>
+	</owner>
+	<size>
+		<width>81</width>
+		<height>60</height>
+		<depth>3</depth>
+	</size>
+	<segmented>0</segmented>
+	<object>
+		<name>gearbox</name>
+		<pose>Rear</pose>
+		<truncated>0</truncated>
+		<difficult>0</difficult>
+		<bndbox>
+			<xmin>1</xmin>
+			<ymin>854</ymin>
+			<xmax>81</xmax>
+			<ymax>914</ymax>
+		</bndbox>
+	</object>
+</annotation>

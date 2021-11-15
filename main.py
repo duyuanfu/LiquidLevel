@@ -12,7 +12,13 @@ def line_is_normal(line_kb, mark_points):
     [line_k, line_b] = line_kb
     symbol = mark_points['symbol']
     points = np.array(mark_points['points'])
-    value = -points[:, 0] + line_k * points[:, 1] + line_b
+    value = -points[:, 1] + line_k * points[:, 0] + line_b
+    # print(points, line_k, line_b)
+    # print(value)
+
+    # 当液位线低于下方标记线，液位线检测程序将设置line_k == 0，line_b == 0
+    if line_k == 0 and line_b == 0:
+        return False
 
     if symbol == 22:
         if (value[0] * value[1] > 0) and (value[2] * value[3] > 0) and (value[0] * value[2] < 0):
@@ -38,8 +44,6 @@ def line_is_normal(line_kb, mark_points):
 
 yolo = YOLO()
 
-# while True:
-    # img = input('Input image filename:')
 img_path = 'E:/Pycharm/Workplace/LiquidLevel/image_detection/data/org_png/'  # 读取图像文件夹
 for file in os.listdir(img_path):   # 遍历访问图像
     img = img_path + file
@@ -63,13 +67,14 @@ for file in os.listdir(img_path):   # 遍历访问图像
         # 获得液位线y = kx + b ==> -y + kx + b = 0
         detect_image_cp = copy.deepcopy(detect_image)
         line_k, line_b = get_liquid_line(detect_image)
-        img_width = detect_image.shape[1]
-        pt1 = (0, np.int16(line_k * 0 + line_b))
-        pt2 = (img_width, np.int16(line_k * img_width + line_b))
-        cv.line(detect_image, pt1, pt2, (0, 255, 0), 2)
-        image[top: bottom, left: right] = detect_image
-        cv.namedWindow("01_liquidLevel_img", cv.WINDOW_KEEPRATIO)
-        cv.imshow("01_liquidLevel_img", image)
+        if line_k != 0 or line_b != 0:
+            img_width = detect_image.shape[1]
+            pt1 = (0, np.int16(line_k * 0 + line_b))
+            pt2 = (img_width, np.int16(line_k * img_width + line_b))
+            cv.line(detect_image, pt1, pt2, (0, 255, 0), 2)
+            image[top: bottom, left: right] = detect_image
+            # cv.namedWindow("01_liquidLevel_img", cv.WINDOW_KEEPRATIO)
+            # cv.imshow("01_liquidLevel_img", image)
 
         # 获得四个边界点
         mark_points = cal_four_point_xy(detect_image_cp)
@@ -93,8 +98,3 @@ for file in os.listdir(img_path):   # 遍历访问图像
 
         cv.waitKey(1000)
         cv.destroyAllWindows()
-
-
-
-
-# ./image_detection/data/org_png/00027.png

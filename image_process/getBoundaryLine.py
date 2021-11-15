@@ -42,7 +42,7 @@ def cal_four_point_xy(src_img):
 
     # 图像平滑
     # 防止下一步提取到的轮廓线断裂
-    fil_img = cv.GaussianBlur(mor_img, (7, 7), 0)
+    fil_img = cv.GaussianBlur(mor_img, (5, 5), 0)
     if __name__ == '__main__':
         cv.namedWindow("02_1_filter", cv.WINDOW_KEEPRATIO)
         cv.imshow("02_1_filter", fil_img)
@@ -126,7 +126,7 @@ def classify_up_down(center_xy):
     :return:
     """
     center_xy = np.array(center_xy)
-    sort_index = np.argsort(center_xy[:, 0])
+    sort_index = np.argsort(center_xy[:, 1])
     center_xy = center_xy[sort_index]
     center_xy = center_xy.tolist()
     center_xy = [tuple(center_xy[i]) for i in range(len(center_xy))]    # center_xy:[( , ), ..., ( , )]
@@ -135,7 +135,7 @@ def classify_up_down(center_xy):
     if length == 2:     # 有上下2个标记点
         symbol = 11
     elif length == 3:   # 有上下共3个标记点
-        if center_xy[2][0] - center_xy[1][0] < 10:
+        if center_xy[2][1] - center_xy[1][1] < 10:  # 比较两点的竖直方向的距离
             symbol = 12
         else:
             symbol = 21
@@ -145,8 +145,7 @@ def classify_up_down(center_xy):
 
 
 if __name__ == '__main__':
-    img = cv.imread('./example/gear00027.png')
-    # cal_four_point_xy(img)
+    img = cv.imread('./example/gear00015.png')
     print(cal_four_point_xy(img))
 
     cv.waitKey()

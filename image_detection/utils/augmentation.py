@@ -116,15 +116,15 @@ def mkdir(path):
 
 if __name__ == "__main__":
     #
-    IMG_DIR = "../data/org_jpg/"
+    IMG_DIR = "../data/org_png/"
     XML_DIR = "../data/org_xml/"
-    AUG_XML_DIR = "../data/xml/"  # 存储增强后的XML文件夹路径
+    AUG_XML_DIR = "../data/aug_xml/"  # 存储增强后的XML文件夹路径
     try:
         shutil.rmtree(AUG_XML_DIR)
     except FileNotFoundError as e:
         a = 1
     mkdir(AUG_XML_DIR)
-    AUG_IMG_DIR = "../data/jpg/"  # 存储增强后的影像文件夹路径
+    AUG_IMG_DIR = "../data/aug_jpg/"  # 存储增强后的影像文件夹路径
     try:
         shutil.rmtree(AUG_IMG_DIR)
     except FileNotFoundError as e:
@@ -172,13 +172,13 @@ if __name__ == "__main__":
     for root, sub_folders, files in os.walk(XML_DIR):
         for name in files:
             bndbox = read_xml_annotation(XML_DIR, name)
-            shutil.copy(os.path.join(XML_DIR, name), AUG_XML_DIR)
-            shutil.copy(os.path.join(IMG_DIR, name[:-4] + '.jpg'), AUG_IMG_DIR)
+            # shutil.copy(os.path.join(XML_DIR, name), AUG_XML_DIR)
+            # shutil.copy(os.path.join(IMG_DIR, name[:-4] + '.jpg'), AUG_IMG_DIR)
 
             for epoch in range(AUGLOOP):
                 seq_det = seq.to_deterministic()  # 保持坐标和图像同步改变，而不是随机
                 # 读取图片
-                img = Image.open(os.path.join(IMG_DIR, name[:-4] + '.jpg'))
+                img = Image.open(os.path.join(IMG_DIR, name[:-4] + '.png'))
                 # sp = example.size
                 img = np.asarray(img)
                 # bndbox 坐标增强
