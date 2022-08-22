@@ -21,8 +21,8 @@ def get_liquid_line(src_img):
         cv.imshow("01_roi", roi_img)
 
     # 获取液位线
-    # line_k, line_b = extract_level_sobel(roi_img)
-    line_k, line_b = extract_level_color(roi_img)
+    line_k, line_b = extract_level_sobel(roi_img)
+    # line_k, line_b = extract_level_color(roi_img)
 
     # 当液位低于标记线时，提取到的上边沿的离散点，导致斜率太大，需舍去
     if line_k < -0.7 or line_k > 0.7:

@@ -14,8 +14,8 @@ import os
 import random
 
 random.seed(0)
-xmlfilepath = './aug_xml'
-saveBasePath = './aug_set'
+xmlfilepath = './org_xml'
+saveBasePath = './org_set'
 
 # ----------------------------------------------------------------------#
 #   想要增加测试集修改trainval_percent

@@ -490,8 +490,9 @@ if __name__ == '__main__':
     #         print(filename)
     #         cv.waitKey(1000)
 
-    img = cv.imread('../example/roi00059.png')
+    img = cv.imread('../example/roi00025.png')
     extract_level_sobel(img)
+
 
     cv.waitKey()
     cv.destroyAllWindows()

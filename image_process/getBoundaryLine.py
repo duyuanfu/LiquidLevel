@@ -1,6 +1,7 @@
 import cv2 as cv
 import numpy as np
 from image_process.utils.utils import capture_roi, cal_largest_value, remove_small_contours
+import os
 
 
 def cal_four_point_xy(src_img):
@@ -29,6 +30,7 @@ def cal_four_point_xy(src_img):
     if __name__ == '__main__':
         cv.namedWindow("01_blue", cv.WINDOW_KEEPRATIO)
         cv.imshow("01_blue", blue_img)
+        cv.imwrite('example/blue00001.png', blue_img)
 
     # 腐蚀膨胀
     kernel = np.ones((3, 3), np.uint8)
@@ -52,7 +54,7 @@ def cal_four_point_xy(src_img):
     if __name__ == '__main__':
         cv.namedWindow("03_0_edges", cv.WINDOW_KEEPRATIO)
         cv.imshow("03_0_edges", edg_img)
-        cv.imwrite('example/edge.png', edg_img)
+        # cv.imwrite('example/edge.png', edg_img)
 
     # 边界填充，padding = 4
     edg_img = cv.copyMakeBorder(edg_img, 4, 4, 4, 4, cv.BORDER_CONSTANT, value=[0, 0, 0])
@@ -144,9 +146,22 @@ def classify_up_down(center_xy):
     return {'symbol': symbol, 'points': center_xy}
 
 
+def test_all():
+    path_img = 'example/'
+    i = 0
+    for filename in os.listdir(path_img):
+        if filename.find('gear') != -1:
+            img = cv.imread(os.path.join(path_img, filename))
+            print(cal_four_point_xy(img))
+            cv.waitKey(1000)
+
+
+
 if __name__ == '__main__':
-    img = cv.imread('./example/gear00015.png')
+    img = cv.imread('./example/gear00001.png')
     print(cal_four_point_xy(img))
+
+    # test_all()
 
     cv.waitKey()
     cv.destroyAllWindows()

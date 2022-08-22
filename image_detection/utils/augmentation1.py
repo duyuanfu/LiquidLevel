@@ -124,7 +124,7 @@ if __name__ == "__main__":
     except FileNotFoundError as e:
         a = 1
     mkdir(AUG_XML_DIR)
-    AUG_IMG_DIR = "../voc_hole/test/org_jpg/"  # 存储增强后的影像文件夹路径
+    AUG_IMG_DIR = "../voc_hole/test/org_png/"  # 存储增强后的影像文件夹路径
     try:
         shutil.rmtree(AUG_IMG_DIR)
     except FileNotFoundError as e:

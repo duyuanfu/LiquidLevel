@@ -23,7 +23,7 @@ from image_detection.utils.utils import (DecodeBox, letterbox_image, non_max_sup
 # --------------------------------------------#
 class YOLO(object):
     _defaults = {
-        "model_path": r'E:\Pycharm\Workplace\LiquidLevel\image_detection\logs\Epoch100-20211105_1.pth',
+        "model_path": r'E:\Pycharm\Workplace\LiquidLevel\image_detection\logs\Epoch100-20211115.pth',
         "anchors_path": r'E:\Pycharm\Workplace\LiquidLevel\image_detection\model_data\yolo_anchors.txt',
         "classes_path": r'E:\Pycharm\Workplace\LiquidLevel\image_detection\model_data\classes.txt',
         # -------------------------------#

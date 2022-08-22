@@ -14,7 +14,7 @@ classes = ["gearbox"]
 
 
 def convert_annotation(image_id, list_file):
-    in_file = open('./data/aug_xml/%s.xml' % (image_id), encoding='utf-8')
+    in_file = open('./data/org_xml/%s.xml' % (image_id), encoding='utf-8')
     tree = ET.parse(in_file)
     root = tree.getroot()
 
@@ -35,10 +35,10 @@ def convert_annotation(image_id, list_file):
 wd = getcwd()
 
 for image_set in sets:
-    image_ids = open('./data/aug_set/%s.txt' % (image_set), encoding='utf-8').read().strip().split()
+    image_ids = open('./data/org_set/%s.txt' % (image_set), encoding='utf-8').read().strip().split()
     list_file = open('my_%s.txt' % (image_set), 'w', encoding='utf-8')
     for image_id in image_ids:
-        list_file.write('./data/aug_jpg/%s.jpg' % (image_id))
+        list_file.write('./data/org_png/%s.png' % (image_id))
         convert_annotation(image_id, list_file)
         list_file.write('\n')
     list_file.close()

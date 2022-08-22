@@ -187,8 +187,8 @@ if __name__ == "__main__":
     # ------------------------------------------------------#
     #   权值文件请看README，百度网盘下载
     # ------------------------------------------------------#
-    # model_path = "model_data/yolov4_tiny_weights_voc.pth"
-    model_path = 'logs/Epoch100-20211105.pth'
+    model_path = "model_data/yolov4_tiny_weights_voc.pth"
+    # model_path = 'logs/Epoch100-20211115.pth'
     # 加快模型训练的效率
     print('Loading weights into state dict...')
     device = torch.device('cuda' if torch.cuda.is_available() else 'cpu')
@@ -238,7 +238,8 @@ if __name__ == "__main__":
     # ------------------------------------------------------#
     if True:
         lr = 1e-3
-        Batch_size = 32
+        # Batch_size = 32
+        Batch_size = 2
         Init_Epoch = 0
         Freeze_Epoch = 50
 
@@ -276,7 +277,8 @@ if __name__ == "__main__":
 
     if True:
         lr = 1e-4
-        Batch_size = 16
+        # Batch_size = 16
+        Batch_size = 2
         Freeze_Epoch = 50
         Unfreeze_Epoch = 100
 
